@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หมูเนย - คอมมูนิตี้รับหิ้วสุดน่ารัก</title>
+    <!-- โหลด Tailwind CSS สำหรับดีไซน์พาสเทล -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+        body { font-family: 'Prompt', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#FDFBF7] text-[#4A3B32] min-h-screen flex flex-col justify-between">
+
+    <!-- 🌸 Navbar (แถบเมนูด้านบน) -->
+    <header class="bg-[#F8C8DC] shadow-sm sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white flex items-center gap-2 cursor-pointer" onclick="router('home')">
+                🐷 หมูเนย <span class="text-xs bg-[#FFFDD0] text-[#4A3B32] px-2 py-0.5 rounded-full font-normal">พันทิปสไตล์</span>
+            </h1>
+            <nav class="flex items-center gap-3">
+                <button onclick="router('home')" class="px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-white/40 transition">หน้าแรก</button>
+                <button onclick="checkAuthAndOpenPost()" class="bg-[#FFFDD0] hover:bg-[#fff9b1] text-[#4A3B32] px-4 py-1.5 rounded-full text-sm font-semibold shadow-xs transition">✨ ตั้งกระทู้หิ้วของ</button>
+                <div id="auth-nav-area">
+                    <button onclick="router('login')" class="bg-white/80 hover:bg-white text-[#4A3B32] px-4 py-1.5 rounded-full text-sm font-medium transition">เข้าสู่ระบบ</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 📦 เนื้อหาหลัก -->
+    <main class="max-w-3xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
+        
+        <!-- 1️⃣ หน้าแรก -->
+        <section id="view-home" class="space-y-6">
+            <div class="bg-gradient-to-r from-[#F8C8DC] to-[#FFFDD0] p-6 rounded-2xl shadow-xs flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-[#4A3B32]">ฝากหิ้วของอร่อย หรือรับหิ้วทางผ่านกับเพื่อนๆ ใน "หมูเนย" 🛒</h2>
+                    <p class="text-sm text-[#6B5B52] mt-1">ดูโพสต์คนอื่นได้ตลอดเวลา แวะรับหิ้วของตามเส้นทาง พร้อมคอมเมนต์และตอบกลับได้เต็มที่</p>
+                </div>
+                <button onclick="checkAuthAndOpenPost()" class="bg-white text-[#4A3B32] font-semibold px-5 py-2.5 rounded-xl shadow-xs hover:bg-[#FDFBF7] transition text-sm whitespace-nowrap">ฝากหิ้วด่วนๆ</button>
+            </div>
+
+            <h3 class="font-bold text-lg border-b border-[#EEDFD2] pb-2">✨ กระทู้รับหิ้วล่าสุดทั้งหมด</h3>
+            <div id="posts-container" class="space-y-6">
+                <!-- โพสต์ทั้งหมดจะถูกโหลดแสดงที่นี่ -->
+            </div>
+        </section>
+
+        <!-- 2️⃣ หน้าเข้าสู่ระบบ -->
+        <section id="view-login" class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-[#F0E6DD] hidden">
+            <h2 class="text-2xl font-bold text-center mb-2 text-[#4A3B32]">💖 ยินดีต้อนรับสู่ หมูเนย</h2>
+            <p class="text-center text-xs text-[#8C7A70] mb-6">กรอกชื่อและรหัสผ่านเพื่อเข้าสู่ระบบหรือสมัครสมาชิกอัตโนมัติ</p>
+            
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold mb-1">ชื่อผู้ใช้งาน (Username)</label>
+                    <input type="text" id="login-username" required class="w-full px-4 py-2 border border-[#EEDFD2] rounded-xl text-sm focus:outline-none focus:border-[#F8C8DC]" placeholder="เช่น พี่หมูใจดี">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">รหัสผ่าน (Password)</label>
+                    <input type="password" id="login-password" required class="w-full px-4 py-2 border border-[#EEDFD2] rounded-xl text-sm focus:outline-none focus:border-[#F8C8DC]" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-[#F8C8DC] hover:bg-[#f3b5cc] text-[#4A3B32] font-semibold py-2.5 rounded-xl text-sm transition shadow-xs">เข้าสู่ระบบ / สมัครสมาชิก</button>
+            </form>
+        </section>
+
+        <!-- 3️⃣ หน้าสร้างกระทู้รับหิ้ว -->
+        <section id="view-post" class="max-w-xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-[#F0E6DD] hidden">
+            <h2 class="text-xl font-bold mb-4 text-[#4A3B32]">📝 สร้างกระทู้ฝากหิ้วของ</h2>
+            <form onsubmit="handleCreatePost(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold mb-1">หัวข้อกระทู้</label>
+                    <input type="text" id="post-title" required class="w-full px-4 py-2 border border-[#EEDFD2] rounded-xl text-sm" placeholder="เช่น หิ้วทอดมันหน้าองค์พระ หรือน้ำปั่นตลาดโต้รุ่ง">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">📍 สถานที่ซื้อของ (ต้นทาง)</label>
+                        <input type="text" id="post-from" required class="w-full px-4 py-2 border border-[#EEDFD2] rounded-xl text-sm" placeholder="เช่น องค์พระปฐมเจดีย์">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">🏠 สถานที่ส่งของ (ปลายทาง)</label>
+                        <input type="text" id="post-to" required class="w-full px-4 py-2 border border-[#EEDFD2] rounded-xl text-sm" placeholder="เช่น มหาวิทยาลัยศิลปากร">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">📏 ระยะทางโดยประมาณ (กิโลเมตร)</label>
+                        <input type="number" id="post-distance" required min="1" oninput="calculateFee()" class="w-full px-4 py-2 border border-[#EEDFD2] rounded-xl text-sm" placeholder="เช่น 2">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">💰 ค่าหิ้วพื้นฐาน (บาท)</label>
+                        <input type="number" id="post-base-fee" required min="0" value="30" oninput="calculateFee()" class="w-full px-4 py-2 border border-[#EEDFD2] rounded-xl text-sm">
+                    </div>
+                </div>
+                <div class="bg-[#FFFDD0]/50 p-4 rounded-xl text-sm flex justify-between items-center">
+                    <span>เรตค่าส่ง: ค่าบริการเริ่มต้น 30 บาท + กม. ละ 5 บาท</span>
+                    <span class="font-bold text-base">รวมค่าส่งสุทธิ: <span id="calc-total" class="text-pink-600">30</span> บาท</span>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">📸 อัปโหลดรูปภาพสินค้าหลักจากเครื่อง</label>
+                    <input type="file" id="post-img-file" accept="image/*" class="w-full p-2 border border-[#EEDFD2] rounded-xl text-xs bg-white file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#F8C8DC] file:text-[#4A3B32] hover:file:bg-[#f3b5cc]">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="router('home')" class="w-1/2 bg-gray-100 py-2.5 rounded-xl text-sm font-semibold">ยกเลิก</button>
+                    <button type="submit" class="w-1/2 bg-[#F8C8DC] hover:bg-[#f3b5cc] text-[#4A3B32] font-semibold py-2.5 rounded-xl text-sm transition">โพสต์เลย</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- 4️⃣ หน้าโปรไฟล์เพื่อน + ระบบรีวิวและให้ดาว -->
+        <section id="view-profile" class="max-w-xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-[#F0E6DD] hidden">
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 bg-[#F8C8DC] rounded-full mx-auto flex items-center justify-center text-3xl mb-3 shadow-xs">🐷</div>
+                <h2 id="profile-name" class="text-xl font-bold text-[#4A3B32]">ชื่อเพื่อน</h2>
+                <div class="flex justify-center items-center gap-1 mt-1 text-amber-500">
+                    <span id="profile-stars">⭐⭐⭐⭐⭐</span>
+                    <span id="profile-rating-text" class="text-xs text-gray-500 font-medium">(5.0 / 1 รีวิว)</span>
+                </div>
+            </div>
+            
+            <!-- ฟอร์มเขียนรีวิวให้ดาว -->
+            <div class="bg-[#FFFDD0]/40 p-4 rounded-xl border border-[#EEDFD2] mb-6 space-y-3">
+                <h3 class="font-bold text-xs text-[#4A3B32]">✍️ เขียนรีวิวและให้คะแนนเพื่อนคนนี้</h3>
+                <div>
+                    <label class="block text-[11px] font-semibold mb-1">ให้คะแนนดาว:</label>
+                    <select id="review-star-input" class="w-full p-2 text-xs bg-white border border-[#EEDFD2] rounded-xl">
+                        <option value="⭐⭐⭐⭐⭐">⭐⭐⭐⭐⭐ (5 ดาว - ดีเยี่ยม)</option>
+                        <option value="⭐⭐⭐⭐">⭐⭐⭐⭐ (4 ดาว - ดีมาก)</option>
+                        <option value="⭐⭐⭐">⭐⭐⭐ (3 ดาว - ปานกลาง)</option>
+                        <option value="⭐⭐">⭐⭐ (2 ดาว - พอใช้)</option>
+                        <option value="⭐">⭐ (1 ดาว - ต้องปรับปรุง)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold mb-1">ข้อความรีวิว:</label>
+                    <textarea id="review-text-input" rows="2" class="w-full p-2 text-xs bg-white border border-[#EEDFD2] rounded-xl" placeholder="เช่น บริการดีมาก ส่งของไวทันใจ..."></textarea>
+                </div>
+                <button onclick="submitReview()" class="w-full bg-[#F8C8DC] hover:bg-[#f3b5cc] text-[#4A3B32] font-semibold py-2 rounded-xl text-xs transition">ส่งรีวิว</button>
+            </div>
+
+            <h3 class="font-bold text-sm mb-3 border-b border-[#EEDFD2] pb-2">💬 รายการรีวิวทั้งหมด</h3>
+            <div id="profile-reviews" class="space-y-3"></div>
+            <button onclick="router('home')" class="w-full mt-6 bg-gray-100 py-2 rounded-xl text-sm font-semibold">กลับหน้าแรก</button>
+        </section>
+
+        <!-- 5️⃣ หน้าเปลี่ยนรหัสผ่าน -->
+        <section id="view-change-password" class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-[#F0E6DD] hidden">
+            <h2 class="text-2xl font-bold text-center mb-2 text-[#4A3B32]">🔒 เปลี่ยนรหัสผ่าน</h2>
+            <p class="text-center text-xs text-[#8C7A70] mb-6">ตั้งรหัสผ่านใหม่สำหรับบัญชีของคุณ</p>
+            
+            <form onsubmit="handleUpdatePassword(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold mb-1">รหัสผ่านเดิม (Old Password)</label>
+                    <input type="password" id="old-password" required class="w-full px-4 py-2 border border-[#EEDFD2] rounded-xl text-sm focus:outline-none focus:border-[#F8C8DC]" placeholder="••••••••">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">รหัสผ่านใหม่ (New Password)</label>
+                    <input type="password" id="new-password" required class="w-full px-4 py-2 border border-[#EEDFD2] rounded-xl text-sm focus:outline-none focus:border-[#F8C8DC]" placeholder="••••••••">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="router('home')" class="w-1/2 bg-gray-100 py-2.5 rounded-xl text-sm font-semibold">ยกเลิก</button>
+                    <button type="submit" class="w-1/2 bg-[#F8C8DC] hover:bg-[#f3b5cc] text-[#4A3B32] font-semibold py-2.5 rounded-xl text-sm transition">บันทึกรหัสใหม่</button>
+                </div>
+            </form>
+        </section>
+
+    </main>
+
+    <!-- 🌸 Footer -->
+    <footer class="text-center py-4 text-xs text-[#8C7A70] border-t border-[#F0E6DD] mt-8 bg-white/50">
+        ✨ หมูเนย   🐷🧈
+    </footer>
+
+    <!-- 🧠 JavaScript ควบคุมระบบ -->
+    <script>
+        let currentUser = localStorage.getItem('moo_user') || null;
+        let currentProfileTarget = null;
+        
+        let usersDB = JSON.parse(localStorage.getItem('moo_users_db')) || {
+            'น้องเนยใส': '1234',
+            'พี่หมูอ้วน': '1234'
+        };
+
+        let defaultPosts = [
+            { 
+                id: 1, 
+                author: 'น้องเนยใส', 
+                title: 'หิ้วข้าวหมูแดงนายกิม องค์พระฯ ข้ามมาส่งหอใน มศก. หน่อยค่า หิวมาก', 
+                from: 'องค์พระปฐมเจดีย์', 
+                to: 'มหาวิทยาลัยศิลปากร', 
+                distance: 2, 
+                fee: 40, 
+                img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400',
+                comments: [
+                    { 
+                        id: 101, 
+                        author: 'พี่หมูอ้วน', 
+                        text: 'พี่กำลังจะเดินไปไหว้พระพอดี เดี๋ยวแวะซื้อข้าวหมูแดงไปส่งให้ที่หน้ามอศิลปากรเลยครับ!', 
+                        img: '',
+                        replies: [
+                            { id: 1001, author: 'น้องเนยใส', text: 'ขอบคุณมากๆ เลยค่ะคุณพี่ รบกวนด้วยนะคะ' }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        let posts = JSON.parse(localStorage.getItem('moo_posts')) || defaultPosts;
+
+        let reviewsData = JSON.parse(localStorage.getItem('moo_reviews_data')) || {
+            'น้องเนยใส': [{ star: '⭐⭐⭐⭐⭐', comment: 'ส่งไวมาก น่ารักสุดๆ', author: 'คุณมด' }],
+            'พี่หมูอ้วน': [{ star: '⭐⭐⭐⭐⭐', comment: 'ซื้อตรงตามออเดอร์เป๊ะ แนะนำเลยครับ ทางผ่านพอดีเยี่ยมมาก', author: 'คุณฟ้า' }]
+        };
+
+        updateAuthNav();
+        renderPosts();
+
+        function savePostsToStorage() {
+            localStorage.setItem('moo_posts', JSON.stringify(posts));
+        }
+
+        function saveReviewsToStorage() {
+            localStorage.setItem('moo_reviews_data', JSON.stringify(reviewsData));
+        }
+
+        function router(viewName) {
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-post').classList.add('hidden');
+            document.getElementById('view-profile').classList.add('hidden');
+            document.getElementById('view-change-password').classList.add('hidden');
+
+            document.getElementById('view-' + viewName).classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function checkAuthAndOpenPost() {
+            if (!currentUser) {
+                alert('⚠️ กรุณาเข้าสู่ระบบก่อนสร้างกระทู้ฝากหิ้วค่ะ');
+                router('login');
+            } else {
+                router('post');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+
+            if (!username || !password) return;
+
+            if (usersDB[username]) {
+                if (usersDB[username] === password) {
+                    currentUser = username;
+                    localStorage.setItem('moo_user', username);
+                    updateAuthNav();
+                    alert('🎉 เข้าสู่ระบบสำเร็จ ยินดีต้อนรับคุณ ' + username);
+                    router('home');
+                } else {
+                    alert('❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้งค่ะ');
+                }
+            } else {
+                usersDB[username] = password;
+                localStorage.setItem('moo_users_db', JSON.stringify(usersDB));
+                currentUser = username;
+                localStorage.setItem('moo_user', username);
+                updateAuthNav();
+                alert('✨ สมัครสมาชิกสำเร็จ! ยินดีต้อนรับสมาชิกใหม่คุณ ' + username);
+                router('home');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('moo_user');
+            updateAuthNav();
+            alert('ออกจากระบบเรียบร้อยแล้วค่ะ');
+            router('home');
+        }
+
+        function updateAuthNav() {
+            const navArea = document.getElementById('auth-nav-area');
+            if (currentUser) {
+                navArea.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold bg-white/80 px-3 py-1.5 rounded-full">🐷 ${currentUser}</span>
+                        <button onclick="router('change-password')" class="text-xs bg-white/90 hover:bg-white px-2.5 py-1.5 rounded-lg text-[#4A3B32] font-medium transition">เปลี่ยนรหัส</button>
+                        <button onclick="logout()" class="text-xs text-red-600 bg-white px-2.5 py-1.5 rounded-lg font-medium">ออก</button>
+                    </div>
+                `;
+            } else {
+                navArea.innerHTML = `<button onclick="router('login')" class="bg-white/80 hover:bg-white text-[#4A3B32] px-4 py-1.5 rounded-full text-sm font-medium transition">เข้าสู่ระบบ</button>`;
+            }
+        }
+
+        function handleUpdatePassword(e) {
+            e.preventDefault();
+            const oldPass = document.getElementById('old-password').value.trim();
+            const newPass = document.getElementById('new-password').value.trim();
+
+            if (!oldPass || !newPass) return;
+
+            if (usersDB[currentUser] === oldPass) {
+                usersDB[currentUser] = newPass;
+                localStorage.setItem('moo_users_db', JSON.stringify(usersDB));
+                alert('✨ เปลี่ยนรหัสผ่านสำเร็จเรียบร้อยแล้วค่ะ');
+                document.getElementById('old-password').value = '';
+                document.getElementById('new-password').value = '';
+                router('home');
+            } else {
+                alert('❌ รหัสผ่านเดิมไม่ถูกต้อง กรุณาลองใหม่อีกครั้งค่ะ');
+            }
+        }
+
+        function calculateFee() {
+            const distance = parseFloat(document.getElementById('post-distance').value) || 0;
+            const base = parseFloat(document.getElementById('post-base-fee').value) || 30;
+            const total = base + (distance * 5);
+            document.getElementById('calc-total').innerText = total;
+        }
+
+        function handleCreatePost(event) {
+            event.preventDefault();
+            const title = document.getElementById('post-title').value;
+            const from = document.getElementById('post-from').value;
+            const to = document.getElementById('post-to').value;
+            const distance = document.getElementById('post-distance').value;
+            const totalFee = document.getElementById('calc-total').innerText;
+            const fileInput = document.getElementById('post-img-file');
+            
+            const defaultImg = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400';
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    saveNewPostData(title, from, to, distance, totalFee, e.target.result);
+                }
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                saveNewPostData(title, from, to, distance, totalFee, defaultImg);
+            }
+        }
+
+        function saveNewPostData(title, from, to, distance, totalFee, imgSrc) {
+            const newPost = {
+                id: Date.now(),
+                author: currentUser,
+                title: title,
+                from: from,
+                to: to,
+                distance: distance,
+                fee: totalFee,
+                img: imgSrc,
+                comments: []
+            };
+
+            posts.unshift(newPost);
+            savePostsToStorage();
+            renderPosts();
+            alert('✨ สร้างกระทู้สำเร็จแล้ว!');
+            router('home');
+        }
+
+        function deletePost(postId) {
+            if (!confirm('คุณต้องการลบกระทู้นี้ใช่หรือไม่?')) return;
+            posts = posts.filter(item => item.id !== postId);
+            savePostsToStorage();
+            renderPosts();
+        }
+
+        function renderPosts() {
+            const container = document.getElementById('posts-container');
+            container.innerHTML = '';
+            
+            if (posts.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-400 py-6 text-sm">ยังไม่มีกระทู้รับหิ้วในขณะนี้ มาสร้างกระทู้แรกกันเลย!</p>`;
+                return;
+            }
+
+            posts.forEach(p => {
+                let deletePostBtn = currentUser === p.author ? `<button onclick="deletePost(${p.id})" class="text-red-500 hover:text-red-700 text-xs bg-red-50 px-2.5 py-1 rounded-lg border border-red-200">🗑️ ลบโพสต์นี้</button>` : '';
+
+                let commentsHtml = '';
+                if (p.comments.length === 0) {
+                    commentsHtml = `<p class="text-xs text-gray-400 italic">ยังไม่มีความคิดเห็น ใครผ่านทางนี้มาเสนอตัวรับหิ้วได้เลยนะคะ!</p>`;
+                } else {
+                    p.comments.forEach(c => {
+                        let deleteBtn = currentUser === c.author ? `<button onclick="deleteComment(${p.id}, ${c.id})" class="text-red-500 hover:text-red-700 text-xs ml-2">🗑️ ลบ</button>` : '';
+                        let commentImg = c.img ? `<img src="${c.img}" class="w-32 h-32 object-cover rounded-lg mt-2 mb-2 border border-[#EEDFD2]" alt="รูปแนบ">` : '';
+                        
+                        let repliesHtml = '';
+                        if (c.replies && c.replies.length > 0) {
+                            c.replies.forEach(r => {
+                                let deleteReplyBtn = currentUser === r.author ? `<button onclick="deleteReply(${p.id}, ${c.id}, ${r.id})" class="text-red-400 hover:text-red-600 text-[10px] ml-2">ลบ</button>` : '';
+                                repliesHtml += `
+                                    <div class="bg-white p-2.5 rounded-xl border border-[#EEDFD2] text-xs mt-2 ml-6 space-y-1">
+                                        <div class="flex justify-between">
+                                            <span class="font-bold text-pink-600">↳ ${r.author}:</span>
+                                            <div>${deleteReplyBtn}</div>
+                                        </div>
+                                        <p class="text-[#4A3B32]">${r.text}</p>
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        commentsHtml += `
+                            <div class="bg-[#FDFBF7] p-3.5 rounded-xl border border-[#EEDFD2] text-xs space-y-2">
+                                <div class="flex justify-between items-start">
+                                    <span class="font-bold text-pink-600">${c.author}:</span>
+                                    <div>${deleteBtn}</div>
+                                </div>
+                                <p class="text-[#4A3B32]">${c.text}</p>
+                                ${commentImg}
+                                
+                                <div class="space-y-1">${repliesHtml}</div>
+
+                                <div class="pt-1">
+                                    <button onclick="toggleReplyBox(${c.id})" class="text-gray-500 hover:text-pink-600 font-semibold text-[11px]">💬 ตอบกลับ</button>
+                                </div>
+
+                                <div id="reply-box-${c.id}" class="hidden pt-2 space-y-2 border-t border-[#EEDFD2] mt-2">
+                                    <input type="text" id="reply-input-${c.id}" placeholder="พิมพ์ข้อความตอบกลับ..." class="w-full p-2 text-xs border border-[#EEDFD2] rounded-xl focus:outline-none focus:border-[#F8C8DC]">
+                                    <button onclick="addReply(${p.id}, ${c.id})" class="bg-[#F8C8DC] hover:bg-[#f3b5cc] text-[#4A3B32] px-3 py-1 rounded-lg text-[11px] font-semibold">ส่งคำตอบกลับ</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                container.innerHTML += `
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-[#F0E6DD] space-y-4">
+                        <div>
+                            <img src="${p.img}" class="w-full h-48 object-cover rounded-xl mb-3" alt="รูปสินค้า">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-xs bg-[#F8C8DC]/40 text-[#4A3B32] px-2.5 py-1 rounded-full font-semibold">📍 จาก ${p.from} ➔ ${p.to}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-gray-500">ระยะทาง ${p.distance} กม. (ค่าส่ง ฿${p.fee})</span>
+                                    ${deletePostBtn}
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-lg text-[#4A3B32] mb-1">${p.title}</h4>
+                            <p class="text-xs text-gray-600">โพสต์โดย: <a href="javascript:void(0)" onclick="openProfile('${p.author}')" class="text-pink-600 underline font-semibold">${p.author}</a></p>
+                        </div>
+
+                        <hr class="border-t border-[#F0E6DD]">
+
+                        <div>
+                            <h5 class="font-bold text-xs text-[#4A3B32] mb-3">💬 ความคิดเห็นและคนรับหิ้วทางผ่าน (${p.comments.length})</h5>
+                            <div class="space-y-3 mb-4">${commentsHtml}</div>
+
+                            <div class="bg-gray-50 p-3.5 rounded-xl border border-[#EEDFD2] space-y-2">
+                                <label class="block text-xs font-semibold text-[#4A3B32]">แสดงความคิดเห็น / เสนอตัวรับหิ้ว (ทางผ่าน)</label>
+                                <textarea id="comment-text-${p.id}" rows="2" class="w-full p-2 text-xs border border-[#EEDFD2] rounded-xl focus:outline-none focus:border-[#F8C8DC]" placeholder="เช่น สนใจรับหิ้วครับ พอดีผ่านทางนั้นตอนเย็น..."></textarea>
+                                
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-500 mb-1">📸 แนบรูปภาพเพิ่มเติม (ถ้ามี)</label>
+                                    <input type="file" id="comment-img-file-${p.id}" accept="image/*" class="w-full p-1.5 border border-[#EEDFD2] rounded-xl text-[11px] bg-white file:mr-2 file:py-0.5 file:px-2 file:rounded-md file:border-0 file:text-[11px] file:font-semibold file:bg-[#F8C8DC] file:text-[#4A3B32]">
+                                </div>
+
+                                <button onclick="addComment(${p.id})" class="bg-[#F8C8DC] hover:bg-[#f3b5cc] text-[#4A3B32] px-4 py-1.5 rounded-xl text-xs font-semibold transition">ส่งคอมเมนต์</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addComment(postId) {
+            if (!currentUser) {
+                alert('⚠️ กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็นค่ะ');
+                router('login');
+                return;
+            }
+            const textInput = document.getElementById(`comment-text-${postId}`);
+            const fileInput = document.getElementById(`comment-img-file-${postId}`);
+            const text = textInput.value.trim();
+
+            const p = posts.find(item => item.id === postId);
+            if (!p) return;
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    p.comments.push({ id: Date.now(), author: currentUser, text: text, img: e.target.result, replies: [] });
+                    savePostsToStorage();
+                    renderPosts();
+                }
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                if (!text) return;
+                p.comments.push({ id: Date.now(), author: currentUser, text: text, img: '', replies: [] });
+                savePostsToStorage();
+                renderPosts();
+            }
+        }
+
+        function deleteComment(postId, commentId) {
+            if (!confirm('คุณต้องการลบความคิดเห็นนี้ใช่หรือไม่?')) return;
+            const p = posts.find(item => item.id === postId);
+            if (p) {
+                p.comments = p.comments.filter(c => c.id !== commentId);
+                savePostsToStorage();
+                renderPosts();
+            }
+        }
+
+        function toggleReplyBox(commentId) {
+            if (!currentUser) {
+                alert('⚠️ กรุณาเข้าสู่ระบบก่อนตอบกลับคอมเมนต์ค่ะ');
+                router('login');
+                return;
+            }
+            const box = document.getElementById(`reply-box-${commentId}`);
+            box.classList.toggle('hidden');
+        }
+
+        function addReply(postId, commentId) {
+            const input = document.getElementById(`reply-input-${commentId}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            const p = posts.find(item => item.id === postId);
+            if (p) {
+                const c = p.comments.find(item => item.id === commentId);
+                if (c) {
+                    if (!c.replies) c.replies = [];
+                    c.replies.push({ id: Date.now(), author: currentUser, text: text });
+                    savePostsToStorage();
+                    renderPosts();
+                }
+            }
+        }
+
+        function deleteReply(postId, commentId, replyId) {
+            if (!confirm('ต้องการลบข้อความตอบกลับนี้ใช่หรือไม่?')) return;
+            const p = posts.find(item => item.id === postId);
+            if (p) {
+                const c = p.comments.find(item => item.id === commentId);
+                if (c) {
+                    c.replies = c.replies.filter(r => r.id !== replyId);
+                    savePostsToStorage();
+                    renderPosts();
+                }
+            }
+        }
+
+        function openProfile(username) {
+            currentProfileTarget = username;
+            document.getElementById('profile-name').innerText = username;
+            renderProfileReviews();
+            router('profile');
+        }
+
+        function renderProfileReviews() {
+            const revContainer = document.getElementById('profile-reviews');
+            revContainer.innerHTML = '';
+
+            const userReviews = reviewsData[currentProfileTarget] || [];
+            
+            let totalStarsCount = 0;
+            if (userReviews.length > 0) {
+                userReviews.forEach(r => {
+                    totalStarsCount += (r.star.match(/⭐/g) || []).length;
+                });
+                let avg = (totalStarsCount / userReviews.length).toFixed(1);
+                document.getElementById('profile-rating-text').innerText = `(${avg} / ${userReviews.length} รีวิว)`;
+            } else {
+                document.getElementById('profile-rating-text').innerText = `(0.0 / 0 รีวิว)`;
+            }
+
+            if (userReviews.length === 0) {
+                revContainer.innerHTML = `<p class="text-center text-gray-400 text-xs py-4">ยังไม่มีรีวิวสำหรับสมาชิกคนนี้</p>`;
+                return;
+            }
+
+            userReviews.forEach(r => {
+                revContainer.innerHTML += `
+                    <div class="bg-[#FDFBF7] p-3 rounded-xl border border-[#EEDFD2] text-xs space-y-1">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-amber-500 font-bold">${r.star}</span>
+                            <span class="text-gray-400">โดย ${r.author}</span>
+                        </div>
+                        <p class="text-[#4A3B32]">${r.comment}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function submitReview() {
+            if (!currentUser) {
+                alert('⚠️ กรุณาเข้าสู่ระบบก่อนเขียนรีวิวค่ะ');
+                router('login');
+                return;
+            }
+            if (currentUser === currentProfileTarget) {
+                alert('❌ ไม่สามารถรีวิวให้ตัวเองได้ค่ะ');
+                return;
+            }
+
+            const star = document.getElementById('review-star-input').value;
+            const comment = document.getElementById('review-text-input').value.trim();
+
+            if (!comment) {
+                alert('กรุณากรอกข้อความรีวิวด้วยนะคะ');
+                return;
+            }
+
+            if (!reviewsData[currentProfileTarget]) {
+                reviewsData[currentProfileTarget] = [];
+            }
+
+            reviewsData[currentProfileTarget].unshift({
+                star: star,
+                comment: comment,
+                author: currentUser
+            });
+
+            saveReviewsToStorage();
+            renderProfileReviews();
+            document.getElementById('review-text-input').value = '';
+            alert('✨ ส่งรีวิวสำเร็จเรียบร้อยแล้วค่ะ!');
+        }
+    </script>
+</body>
+</html>
